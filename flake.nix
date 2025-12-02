@@ -1,5 +1,5 @@
 {
-  description = "A flake for the Provable ecosystem.";
+  description = "A flake for the Leo language.";
 
   inputs = {
     leo-src = {
@@ -33,10 +33,12 @@
 
       packages = perSystemPkgs (pkgs: {
         leo = pkgs.leo;
+        default = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.leo;
       });
 
       devShells = perSystemPkgs (pkgs: {
         leo-dev = pkgs.callPackage ./pkgs/leo-dev.nix { };
+        default = inputs.self.devShells.${pkgs.stdenv.hostPlatform.system}.leo-dev;
       });
 
       formatter = perSystemPkgs (pkgs: pkgs.nixfmt-tree);

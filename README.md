@@ -1,6 +1,6 @@
-# provable.nix
+# leo.nix
 
-A Nix flake for the Provable ecosystem, currently focused on leo.
+A Nix flake for the Leo language.
 
 *Supports Linux & macOS.*
 
@@ -11,7 +11,7 @@ A Nix flake for the Provable ecosystem, currently focused on leo.
 2. Use Nix to enter a shell with the `leo` CLI:
 
    ```console
-   nix shell github:mitchmindtree/provable.nix#leo
+   nix shell github:mitchmindtree/leo.nix
    ```
 
 3. Check that it works with:
@@ -27,5 +27,5 @@ dependencies and environment variables to build leo and run the tests. This
 includes openssl and pkg-config.
 
 ```console
-nix develop github:mitchmindtree/provable.nix#leo-dev
+nix develop github:mitchmindtree/leo.nix
 ```
