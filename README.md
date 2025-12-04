@@ -2,7 +2,7 @@
 
 A Nix flake for the Leo language.
 
-*Supports Linux & macOS.*
+*Supports Linux. MacOS supported, but untested currently.*
 
 ## Usage
 

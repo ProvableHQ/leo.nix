@@ -53,6 +53,7 @@
         "leo-src": "leo-src",
         "nixpkgs": "nixpkgs",
         "rust-overlay": "rust-overlay",
+        "snarkos-src": "snarkos-src",
         "systems": "systems"
       }
     },
@@ -71,6 +72,22 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "snarkos-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1764697992,
+        "narHash": "sha256-vRRzVZSfA0bMrKvnm2WSfo4phSR/VYuq1DpjB8MekSc=",
+        "owner": "provablehq",
+        "repo": "snarkos",
+        "rev": "6bf506233d5338a626ebc465e47492224a7b6507",
+        "type": "github"
+      },
+      "original": {
+        "owner": "provablehq",
+        "repo": "snarkos",
         "type": "github"
       }
     },

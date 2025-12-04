@@ -2,13 +2,17 @@
   description = "A flake for the Leo language.";
 
   inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    systems.url = "github:nix-systems/default";
     leo-src = {
       url = "github:provablehq/leo";
       flake = false;
     };
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    systems.url = "github:nix-systems/default";
+    snarkos-src = {
+      url = "github:provablehq/snarkos";
+      flake = false;
+    };
   };
 
   outputs =
@@ -47,12 +51,23 @@
               src = inputs.leo-src;
               rust = rust-nightly;
             };
+
+            # Default snarkos pkg.
+            snarkos = prev.callPackage ./pkgs/snarkos.nix { src = inputs.snarkos-src; };
+
+            # Includes the test_network feature.
+            snarkos-testnet = prev.callPackage ./pkgs/snarkos.nix {
+              src = inputs.snarkos-src;
+              buildFeatures = [ "test_network" ];
+            };
           };
       };
 
       packages = perSystemPkgs (pkgs: {
         leo = pkgs.leo;
         leo-rust-nightly = pkgs.leo-rust-nightly;
+        snarkos = pkgs.snarkos;
+        snarkos-testnet = pkgs.snarkos-testnet;
         default = pkgs.leo;
       });
 
