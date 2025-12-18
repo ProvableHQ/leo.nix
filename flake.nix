@@ -74,6 +74,7 @@
       devShells = perSystemPkgs (pkgs: {
         leo-dev = pkgs.callPackage ./pkgs/leo-dev.nix { };
         leo-nightly-dev = pkgs.callPackage ./pkgs/leo-dev.nix { leo = pkgs.leo-rust-nightly; };
+        snarkos-dev = pkgs.callPackage ./pkgs/snarkos-dev.nix { };
         default = inputs.self.devShells.${pkgs.stdenv.hostPlatform.system}.leo-dev;
       });
 
