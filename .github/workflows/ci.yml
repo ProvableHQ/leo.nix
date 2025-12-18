@@ -22,6 +22,7 @@ jobs:
         include:
           - command: build --print-build-logs --no-update-lock-file .#leo
           - command: develop --no-update-lock-file .#leo-dev
+          - command: develop --no-update-lock-file .#snarkos-dev
           - command: flake check --all-systems --no-update-lock-file
           - command: fmt -- --ci
     steps:
