@@ -3,6 +3,7 @@
   buildNoDefaultFeatures ? false,
   lib,
   libclang,
+  lld,
   makeRustPlatform,
   openssl,
   pkg-config,
@@ -33,6 +34,7 @@ rustPlatform.buildRustPackage {
   };
   nativeBuildInputs = [
     libclang
+    lld
     pkg-config
   ];
   buildInputs = [
