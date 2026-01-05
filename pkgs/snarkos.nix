@@ -7,6 +7,7 @@
   makeRustPlatform,
   openssl,
   pkg-config,
+  rocksdb,
   rust-bin,
   src,
 }:
@@ -39,7 +40,10 @@ rustPlatform.buildRustPackage {
   ];
   buildInputs = [
     openssl
+    rocksdb
   ];
   doCheck = false; # Tested in CI.
   LIBCLANG_PATH = lib.makeLibraryPath [ libclang ];
+  # Dynamically link to rocksdb.
+  ROCKSDB_LIB_DIR = lib.makeLibraryPath [ rocksdb ];
 }
