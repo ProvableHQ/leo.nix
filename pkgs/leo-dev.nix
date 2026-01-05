@@ -1,8 +1,12 @@
 {
   leo,
   mkShell,
+  rust-bin,
   snarkos-testnet,
 }:
+let
+  rust-nightly = rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
+in
 mkShell {
   inputsFrom = [
     leo
@@ -12,5 +16,6 @@ mkShell {
   ];
   env = {
     inherit (snarkos-testnet) LIBCLANG_PATH;
+    RUSTFMT = "${rust-nightly}/bin/rustfmt";
   };
 }
