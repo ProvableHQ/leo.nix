@@ -1,5 +1,6 @@
 {
   cargo-nextest,
+  lld,
   mkShell,
   rust-bin,
   snarkos,
@@ -13,6 +14,7 @@ mkShell {
   ];
   buildInputs = [
     cargo-nextest
+    lld
   ];
   env = {
     inherit (snarkos) LIBCLANG_PATH;
