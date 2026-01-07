@@ -10,6 +10,7 @@
   rocksdb,
   rust-bin,
   src,
+  zlib,
 }:
 let
   rust = rust-bin.fromRustupToolchainFile "${src}/rust-toolchain.toml";
@@ -46,4 +47,9 @@ rustPlatform.buildRustPackage {
   LIBCLANG_PATH = lib.makeLibraryPath [ libclang ];
   # Dynamically link to rocksdb.
   ROCKSDB_LIB_DIR = lib.makeLibraryPath [ rocksdb ];
+  # Runtime library path for dynamically linked libraries.
+  LD_LIBRARY_PATH = lib.makeLibraryPath [
+    openssl
+    zlib
+  ];
 }
