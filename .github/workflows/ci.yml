@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - command: build --print-build-logs --no-update-lock-file .#leo
+          - command: build --print-build-logs --no-update-lock-file .#leo && ./result/bin/leo --version
           - command: build --print-build-logs --no-update-lock-file .#snarkos-testnet && ./result/bin/snarkos --version
           - command: develop --no-update-lock-file .#leo-dev
           - command: develop --no-update-lock-file .#snarkos-dev
