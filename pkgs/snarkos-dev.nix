@@ -15,7 +15,7 @@ mkShell {
     cargo-nextest
   ];
   env = {
-    inherit (snarkos) LIBCLANG_PATH ROCKSDB_LIB_DIR;
+    inherit (snarkos) ROCKSDB_LIB_DIR;
     RUSTFMT = "${rust-nightly}/bin/rustfmt";
   };
 }
