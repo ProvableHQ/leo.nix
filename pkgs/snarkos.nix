@@ -2,8 +2,7 @@
   buildFeatures ? [ ],
   buildNoDefaultFeatures ? false,
   lib,
-  libclang,
-  lld,
+  llvmPackages,
   makeRustPlatform,
   openssl,
   pkg-config,
@@ -35,21 +34,15 @@ rustPlatform.buildRustPackage {
     };
   };
   nativeBuildInputs = [
-    libclang
-    lld
+    llvmPackages.bintools
     pkg-config
+    rustPlatform.bindgenHook
   ];
   buildInputs = [
     openssl
     rocksdb
   ];
   doCheck = false; # Tested in CI.
-  LIBCLANG_PATH = lib.makeLibraryPath [ libclang ];
   # Dynamically link to rocksdb.
   ROCKSDB_LIB_DIR = lib.makeLibraryPath [ rocksdb ];
-  # Runtime library path for dynamically linked libraries.
-  LD_LIBRARY_PATH = lib.makeLibraryPath [
-    openssl
-    zlib
-  ];
 }

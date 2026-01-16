@@ -10,12 +10,13 @@ in
 mkShell {
   inputsFrom = [
     leo
+    snarkos-testnet
   ];
   buildInputs = [
     snarkos-testnet
   ];
   env = {
-    inherit (snarkos-testnet) LIBCLANG_PATH;
+    inherit (snarkos-testnet) ROCKSDB_LIB_DIR;
     RUSTFMT = "${rust-nightly}/bin/rustfmt";
   };
 }
