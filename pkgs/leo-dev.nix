@@ -16,7 +16,7 @@ mkShell {
     snarkos-testnet
   ];
   env = {
-    inherit (snarkos-testnet) LIBCLANG_PATH ROCKSDB_LIB_DIR LD_LIBRARY_PATH;
+    inherit (snarkos-testnet) LIBCLANG_PATH ROCKSDB_LIB_DIR;
     RUSTFMT = "${rust-nightly}/bin/rustfmt";
   };
 }
