@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - command: build --print-build-logs --no-update-lock-file .#leo
-          - command: build --print-build-logs --no-update-lock-file .#snarkos-testnet
+          - command: build --print-build-logs --no-update-lock-file .#snarkos-testnet && ./result/bin/snarkos --version
           - command: develop --no-update-lock-file .#leo-dev
           - command: develop --no-update-lock-file .#snarkos-dev
           - command: flake check --all-systems --no-update-lock-file
