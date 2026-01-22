@@ -30,7 +30,7 @@ rustPlatform.buildRustPackage {
   cargoLock = {
     lockFile = "${src}/Cargo.lock";
     outputHashes = {
-      "snarkvm-4.4.0" = "sha256-pZvbah5n9uv/Zkfnp/vrZyRH9tSdPovovK43T8Fu5nM=";
+      "snarkvm-4.4.0" = "sha256-HzaCHrhbAm7PZ+Uv+VcxzNUckn45pwv/DDPluKa+pWg=";
     };
   };
   nativeBuildInputs = [

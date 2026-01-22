@@ -78,16 +78,17 @@
     "snarkos-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1768252171,
-        "narHash": "sha256-pbidompnXa8ODMxDvms70Iu+0HlfWLhKXJVfiAaKQHQ=",
+        "lastModified": 1768561063,
+        "narHash": "sha256-PxuSikLO8UfzTt9VhAzJdOk8HsJgV/nn8CgTKfrDiuY=",
         "owner": "provablehq",
         "repo": "snarkos",
-        "rev": "bd86e5e0d1f1a93a89e5415b25d05110b2c95e3a",
+        "rev": "4ec22a328d3dc583a13899b2836488a4e4e647f2",
         "type": "github"
       },
       "original": {
         "owner": "provablehq",
         "repo": "snarkos",
+        "rev": "4ec22a328d3dc583a13899b2836488a4e4e647f2",
         "type": "github"
       }
     },
