@@ -1,4 +1,5 @@
 {
+  cargo-nextest,
   leo,
   mkShell,
   rust-bin,
@@ -13,6 +14,7 @@ mkShell {
     snarkos-testnet
   ];
   buildInputs = [
+    cargo-nextest
     snarkos-testnet
   ];
   env = {
