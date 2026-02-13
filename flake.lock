@@ -3,11 +3,11 @@
     "leo-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1768314463,
-        "narHash": "sha256-536gUDRAqZcxeE005vWbhhERvnwCIjeJgdI1xHbTuRA=",
+        "lastModified": 1770938225,
+        "narHash": "sha256-RB5kJvxWJnBFLvmwPVAd7XEozBUtosmBkQO8HxphENc=",
         "owner": "provablehq",
         "repo": "leo",
-        "rev": "f118eaf482544e201c8c73bd9e6ead591df49f36",
+        "rev": "7d36db36b3aa1484188aee9079a1f939b2763acb",
         "type": "github"
       },
       "original": {
