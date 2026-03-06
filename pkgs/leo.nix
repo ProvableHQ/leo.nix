@@ -10,17 +10,18 @@ let
     cargo = rust;
     rustc = rust;
   };
-  manifestPath = "${src}/Cargo.toml";
+  buildAndTestSubdir = "crates/leo";
+  manifestPath = "${src}/${buildAndTestSubdir}/Cargo.toml";
   manifest = builtins.fromTOML (builtins.readFile manifestPath);
 in
 rustPlatform.buildRustPackage {
   pname = "leo";
   version = manifest.package.version;
-  src = src;
+  inherit buildAndTestSubdir src;
   cargoLock = {
     lockFile = "${src}/Cargo.lock";
     outputHashes = {
-      "snarkvm-4.4.0" = "sha256-JyRkTFGIv/8LjHMCns/FSAwxbN5Y2uhH+zkoJOGjkDU=";
+      "snarkvm-4.4.0" = "sha256-d6gDwIXUMAenrXtOMSapDlaPp6WSXzdMPAEWiuXD5B0=";
     };
   };
   nativeBuildInputs = [
