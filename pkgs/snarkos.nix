@@ -9,7 +9,6 @@
   rocksdb,
   rust-bin,
   src,
-  zlib,
 }:
 let
   rust = rust-bin.fromRustupToolchainFile "${src}/rust-toolchain.toml";
@@ -27,12 +26,7 @@ rustPlatform.buildRustPackage {
   # The `cargo-auditable` used by `buildRustPackage` appears to be out-of-date.
   auditable = false;
   inherit buildFeatures buildNoDefaultFeatures;
-  cargoLock = {
-    lockFile = "${src}/Cargo.lock";
-    outputHashes = {
-      "snarkvm-4.4.0" = "sha256-HzaCHrhbAm7PZ+Uv+VcxzNUckn45pwv/DDPluKa+pWg=";
-    };
-  };
+  cargoLock.lockFile = "${src}/Cargo.lock";
   nativeBuildInputs = [
     llvmPackages.bintools
     pkg-config

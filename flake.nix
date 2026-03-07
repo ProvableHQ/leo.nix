@@ -10,8 +10,8 @@
       flake = false;
     };
     snarkos-src = {
-      # Pinned to recent `canary-v4.5.0` commit.
-      url = "github:provablehq/snarkos?rev=4ec22a328d3dc583a13899b2836488a4e4e647f2";
+      # Pinned to v4.4.0 (latest stable release, matches CI).
+      url = "github:provablehq/snarkos/v4.4.0";
       flake = false;
     };
   };
