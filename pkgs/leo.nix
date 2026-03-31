@@ -18,12 +18,7 @@ rustPlatform.buildRustPackage {
   pname = "leo";
   version = manifest.package.version;
   inherit buildAndTestSubdir src;
-  cargoLock = {
-    lockFile = "${src}/Cargo.lock";
-    outputHashes = {
-      "snarkvm-4.4.0" = "sha256-d6gDwIXUMAenrXtOMSapDlaPp6WSXzdMPAEWiuXD5B0=";
-    };
-  };
+  cargoLock.lockFile = "${src}/Cargo.lock";
   nativeBuildInputs = [
     pkg-config
   ];
