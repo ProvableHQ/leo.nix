@@ -10,8 +10,7 @@
       flake = false;
     };
     snarkos-src = {
-      # Pinned to v4.5.1 (latest stable release).
-      url = "github:provablehq/snarkos/v4.5.1";
+      url = "github:provablehq/snarkos/v4.6.0";
       flake = false;
     };
   };
