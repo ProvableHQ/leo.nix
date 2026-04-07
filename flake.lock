@@ -54,7 +54,8 @@
         "nixpkgs": "nixpkgs",
         "rust-overlay": "rust-overlay",
         "snarkos-src": "snarkos-src",
-        "systems": "systems"
+        "systems": "systems",
+        "tree-sitter-leo-src": "tree-sitter-leo-src"
       }
     },
     "rust-overlay": {
@@ -104,6 +105,23 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "tree-sitter-leo-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1774984662,
+        "narHash": "sha256-FFttXR1l65sGkq1SJ/vEveDgRO+gcS9oOD1NFSv5wRA=",
+        "owner": "provablehq",
+        "repo": "leo",
+        "rev": "d9207de49e0d5fe938e61110f0a917e5f5c00b9f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "provablehq",
+        "ref": "v4.0.0",
+        "repo": "leo",
         "type": "github"
       }
     }
