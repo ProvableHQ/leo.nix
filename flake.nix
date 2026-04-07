@@ -9,6 +9,10 @@
       url = "github:provablehq/leo";
       flake = false;
     };
+    tree-sitter-leo-src = {
+      url = "github:provablehq/leo/v4.0.0";
+      flake = false;
+    };
     snarkos-src = {
       url = "github:provablehq/snarkos/v4.6.0";
       flake = false;
@@ -60,6 +64,19 @@
               src = inputs.snarkos-src;
               buildFeatures = [ "test_network" ];
             };
+
+            tree-sitter-grammars = prev.tree-sitter-grammars // {
+              # Tree-sitter grammar for Leo syntax highlighting.
+              tree-sitter-leo = prev.tree-sitter.buildGrammar {
+                language = "leo";
+                version = "4.0.0";
+                src = inputs.tree-sitter-leo-src;
+                location = "tree-sitter";
+              };
+            };
+
+            # Flat alias for easy access alongside inclusion in tree-sitter-grammars.
+            tree-sitter-leo = final.tree-sitter-grammars.tree-sitter-leo;
           };
       };
 
@@ -68,6 +85,7 @@
         leo-rust-nightly = pkgs.leo-rust-nightly;
         snarkos = pkgs.snarkos;
         snarkos-testnet = pkgs.snarkos-testnet;
+        tree-sitter-leo = pkgs.tree-sitter-leo;
         default = pkgs.leo;
       });
 
