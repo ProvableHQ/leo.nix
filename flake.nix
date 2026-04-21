@@ -38,18 +38,26 @@
           final: prev:
           let
             rust = prev.rust-bin.fromRustupToolchainFile "${inputs.leo-src}/rust-toolchain.toml";
-          in
-          {
-            # The main leo CLI binary.
-            leo-cli = prev.callPackage ./pkgs/leo-cli.nix {
+            mkLeoPkg = prev.callPackage ./pkgs/mk-leo-pkg.nix {
               src = inputs.leo-src;
               inherit rust;
             };
+          in
+          {
+            # The main leo CLI binary.
+            leo-cli = mkLeoPkg {
+              pname = "leo-cli";
+              crate = "leo";
+            };
 
-            # The leo formatter plugin.
-            leo-fmt = prev.callPackage ./pkgs/leo-fmt.nix {
-              src = inputs.leo-src;
-              inherit rust;
+            # Leo plugins.
+            leo-fmt = mkLeoPkg {
+              pname = "leo-fmt";
+              crate = "fmt";
+            };
+            leo-lsp = mkLeoPkg {
+              pname = "leo-lsp";
+              crate = "lsp";
             };
 
             # Combined leo package: CLI + all plugins.
@@ -58,6 +66,7 @@
               paths = [
                 final.leo-cli
                 final.leo-fmt
+                final.leo-lsp
               ];
             };
 
@@ -89,6 +98,7 @@
         leo = pkgs.leo;
         leo-cli = pkgs.leo-cli;
         leo-fmt = pkgs.leo-fmt;
+        leo-lsp = pkgs.leo-lsp;
         snarkos = pkgs.snarkos;
         snarkos-testnet = pkgs.snarkos-testnet;
         tree-sitter-leo = pkgs.tree-sitter-leo;
