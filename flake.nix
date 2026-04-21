@@ -37,23 +37,37 @@
         default =
           final: prev:
           let
-            # Provide versions of leo built with both the officially supported
-            # rust version, as well as a rust nightly compiler to allow
-            # build-time profiling.
             rust = prev.rust-bin.fromRustupToolchainFile "${inputs.leo-src}/rust-toolchain.toml";
-            rust-nightly = prev.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
+            mkLeoPkg = prev.callPackage ./pkgs/mk-leo-pkg.nix {
+              src = inputs.leo-src;
+              inherit rust;
+            };
           in
           {
-            # Stable, official leo.
-            leo = prev.callPackage ./pkgs/leo.nix {
-              src = inputs.leo-src;
-              rust = rust;
+            # The main leo CLI binary.
+            leo-cli = mkLeoPkg {
+              pname = "leo-cli";
+              crate = "leo";
             };
 
-            # Leo built with nightly rust.
-            leo-rust-nightly = prev.callPackage ./pkgs/leo.nix {
-              src = inputs.leo-src;
-              rust = rust-nightly;
+            # Leo plugins.
+            leo-fmt = mkLeoPkg {
+              pname = "leo-fmt";
+              crate = "fmt";
+            };
+            leo-lsp = mkLeoPkg {
+              pname = "leo-lsp";
+              crate = "lsp";
+            };
+
+            # Combined leo package: CLI + all plugins.
+            leo = prev.symlinkJoin {
+              name = "leo-${final.leo-cli.version}";
+              paths = [
+                final.leo-cli
+                final.leo-fmt
+                final.leo-lsp
+              ];
             };
 
             # Default snarkos pkg.
@@ -82,7 +96,9 @@
 
       packages = perSystemPkgs (pkgs: {
         leo = pkgs.leo;
-        leo-rust-nightly = pkgs.leo-rust-nightly;
+        leo-cli = pkgs.leo-cli;
+        leo-fmt = pkgs.leo-fmt;
+        leo-lsp = pkgs.leo-lsp;
         snarkos = pkgs.snarkos;
         snarkos-testnet = pkgs.snarkos-testnet;
         tree-sitter-leo = pkgs.tree-sitter-leo;
@@ -91,7 +107,6 @@
 
       devShells = perSystemPkgs (pkgs: {
         leo-dev = pkgs.callPackage ./pkgs/leo-dev.nix { };
-        leo-nightly-dev = pkgs.callPackage ./pkgs/leo-dev.nix { leo = pkgs.leo-rust-nightly; };
         snarkos-dev = pkgs.callPackage ./pkgs/snarkos-dev.nix { };
         default = inputs.self.devShells.${pkgs.stdenv.hostPlatform.system}.leo-dev;
       });
