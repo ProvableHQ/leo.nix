@@ -37,23 +37,28 @@
         default =
           final: prev:
           let
-            # Provide versions of leo built with both the officially supported
-            # rust version, as well as a rust nightly compiler to allow
-            # build-time profiling.
             rust = prev.rust-bin.fromRustupToolchainFile "${inputs.leo-src}/rust-toolchain.toml";
-            rust-nightly = prev.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
           in
           {
-            # Stable, official leo.
-            leo = prev.callPackage ./pkgs/leo.nix {
+            # The main leo CLI binary.
+            leo-cli = prev.callPackage ./pkgs/leo-cli.nix {
               src = inputs.leo-src;
-              rust = rust;
+              inherit rust;
             };
 
-            # Leo built with nightly rust.
-            leo-rust-nightly = prev.callPackage ./pkgs/leo.nix {
+            # The leo formatter plugin.
+            leo-fmt = prev.callPackage ./pkgs/leo-fmt.nix {
               src = inputs.leo-src;
-              rust = rust-nightly;
+              inherit rust;
+            };
+
+            # Combined leo package: CLI + all plugins.
+            leo = prev.symlinkJoin {
+              name = "leo-${final.leo-cli.version}";
+              paths = [
+                final.leo-cli
+                final.leo-fmt
+              ];
             };
 
             # Default snarkos pkg.
@@ -82,7 +87,8 @@
 
       packages = perSystemPkgs (pkgs: {
         leo = pkgs.leo;
-        leo-rust-nightly = pkgs.leo-rust-nightly;
+        leo-cli = pkgs.leo-cli;
+        leo-fmt = pkgs.leo-fmt;
         snarkos = pkgs.snarkos;
         snarkos-testnet = pkgs.snarkos-testnet;
         tree-sitter-leo = pkgs.tree-sitter-leo;
@@ -91,7 +97,6 @@
 
       devShells = perSystemPkgs (pkgs: {
         leo-dev = pkgs.callPackage ./pkgs/leo-dev.nix { };
-        leo-nightly-dev = pkgs.callPackage ./pkgs/leo-dev.nix { leo = pkgs.leo-rust-nightly; };
         snarkos-dev = pkgs.callPackage ./pkgs/snarkos-dev.nix { };
         default = inputs.self.devShells.${pkgs.stdenv.hostPlatform.system}.leo-dev;
       });

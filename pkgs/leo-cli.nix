@@ -15,7 +15,7 @@ let
   manifest = builtins.fromTOML (builtins.readFile manifestPath);
 in
 rustPlatform.buildRustPackage {
-  pname = "leo";
+  pname = "leo-cli";
   version = manifest.package.version;
   inherit buildAndTestSubdir src;
   cargoLock.lockFile = "${src}/Cargo.lock";

@@ -1,6 +1,7 @@
 {
   cargo-nextest,
-  leo,
+  leo-cli,
+  leo-fmt,
   mkShell,
   rust-bin,
   snarkos-testnet,
@@ -10,7 +11,8 @@ let
 in
 mkShell {
   inputsFrom = [
-    leo
+    leo-cli
+    leo-fmt
     snarkos-testnet
   ];
   buildInputs = [
