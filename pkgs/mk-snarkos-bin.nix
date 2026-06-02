@@ -5,6 +5,7 @@
   openssl,
   stdenv,
   unzip,
+  zlib,
 }:
 {
   version,
@@ -27,9 +28,12 @@ stdenv.mkDerivation {
   src = fetchurl { inherit url hash; };
 
   nativeBuildInputs = [ unzip ] ++ lib.optionals stdenv.isLinux [ autoPatchelfHook ];
+  # zlib is needed by snarkos v4.0–v4.5 (later versions drop the dependency
+  # but adding it unconditionally is harmless).
   buildInputs = lib.optionals stdenv.isLinux [
     openssl
     stdenv.cc.cc.lib
+    zlib
   ];
 
   dontUnpack = true;

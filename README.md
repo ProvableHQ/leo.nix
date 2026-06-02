@@ -46,20 +46,40 @@ Supported targets: `x86_64-linux` (leo, snarkos), `x86_64-darwin` (leo),
 `aarch64-darwin` (leo, snarkos). On systems with no upstream binary
 (`aarch64-linux`), use the from-source `leo` and `snarkos` packages instead.
 
-### Adding a new version
+### Refreshing the manifest
 
 Manifests live at `manifests/{leo,snarkos}-bin.toml` and are regenerated
-by a small script that prefetches every (component, target) archive and
-records its SRI hash:
+by helper scripts that prefetch every (component, target) archive and
+record its SRI hash.
+
+To pull in every available upstream stable release in one go:
 
 ```console
-nix run .#update-bin-manifest -- leo     4.1.0
-nix run .#update-bin-manifest -- snarkos 4.7.2
+nix run .#update-manifests           # cached: skips entries already recorded
+nix run .#update-manifests -- --force  # re-hashes every (component, target)
 ```
 
-Re-running the script for an already-recorded version is a no-op — it
-should produce a byte-identical manifest. The `latest` pointer is bumped
-to the highest recorded semver.
+This enumerates GitHub releases, keeps the tags we know how to handle
+(`leo-lang-vX.Y.Z` for leo, `vX.Y.Z` with major ≥ 4 for snarkOS), and
+imports each version. Entries already present in the manifest are
+reused without re-downloading; use `--force` if upstream re-issued an
+archive under the same tag. Versions that no longer match the filter
+(or that upstream deleted) are pruned at the end of each project's
+import loop. Set `GITHUB_TOKEN` to authenticate API calls if you hit
+the anonymous rate limit.
+
+To target a single version:
+
+```console
+nix run .#update-bin-manifest --         leo     4.1.0
+nix run .#update-bin-manifest -- --force snarkos 4.7.2
+```
+
+Re-running either command on an already-recorded version is a no-op —
+the manifest pair stays byte-identical. The `latest` pointer is set to
+the highest recorded semver. Targets that upstream didn't publish for
+a given release (e.g. `x86_64-apple-darwin` on snarkOS v4.7.x) are
+skipped with a warning and simply omitted from that version's entry.
 
 ## Developing leo
 

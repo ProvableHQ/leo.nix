@@ -170,28 +170,48 @@
         }
       );
 
-      apps = perSystemPkgs (pkgs: {
-        update-bin-manifest = {
-          type = "app";
-          program =
-            let
-              tool = pkgs.writeShellApplication {
-                name = "update-bin-manifest";
-                runtimeInputs = with pkgs; [
-                  cacert
-                  coreutils
-                  curl
-                  git
-                  jq
-                  nix
-                  yj
-                ];
-                text = builtins.readFile ./scripts/update-bin-manifest.sh;
-              };
-            in
-            "${tool}/bin/update-bin-manifest";
-        };
-      });
+      apps = perSystemPkgs (
+        pkgs:
+        let
+          update-bin-manifest = pkgs.writeShellApplication {
+            name = "update-bin-manifest";
+            runtimeInputs = with pkgs; [
+              cacert
+              coreutils
+              curl
+              git
+              jq
+              nix
+              yj
+            ];
+            text = builtins.readFile ./scripts/update-bin-manifest.sh;
+          };
+          update-manifests = pkgs.writeShellApplication {
+            name = "update-manifests";
+            runtimeInputs =
+              (with pkgs; [
+                cacert
+                coreutils
+                curl
+                git
+                jq
+                yj
+              ])
+              ++ [ update-bin-manifest ];
+            text = builtins.readFile ./scripts/update-manifests.sh;
+          };
+        in
+        {
+          update-bin-manifest = {
+            type = "app";
+            program = "${update-bin-manifest}/bin/update-bin-manifest";
+          };
+          update-manifests = {
+            type = "app";
+            program = "${update-manifests}/bin/update-manifests";
+          };
+        }
+      );
 
       devShells = perSystemPkgs (pkgs: {
         leo-dev = pkgs.callPackage ./pkgs/leo-dev.nix { };
