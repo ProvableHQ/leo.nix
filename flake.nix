@@ -42,6 +42,18 @@
               src = inputs.leo-src;
               inherit rust;
             };
+
+            leoBinManifest = builtins.fromTOML (builtins.readFile ./manifests/leo-bin.toml);
+            snarkosBinManifest = builtins.fromTOML (builtins.readFile ./manifests/snarkos-bin.toml);
+            mkLeoBin = prev.callPackage ./pkgs/mk-leo-bin.nix { };
+            mkSnarkosBin = prev.callPackage ./pkgs/mk-snarkos-bin.nix { };
+
+            mkBinSet =
+              builder: manifest:
+              let
+                byVersion = builtins.mapAttrs (version: data: builder { inherit version data; }) manifest.versions;
+              in
+              byVersion // { latest = byVersion.${manifest.latest}; };
           in
           {
             # The main leo CLI binary.
@@ -70,6 +82,12 @@
               ];
             };
 
+            # Prebuilt upstream binaries (one combined symlinkJoin per recorded
+            # version, plus `latest`). Per-component derivations are exposed as
+            # passthru `.cli`, `.fmt`, `.lsp` on each version.
+            leo-bin = mkBinSet mkLeoBin leoBinManifest;
+            snarkos-bin = mkBinSet mkSnarkosBin snarkosBinManifest;
+
             # Default snarkos pkg.
             snarkos = prev.callPackage ./pkgs/snarkos.nix { src = inputs.snarkos-src; };
 
@@ -94,15 +112,85 @@
           };
       };
 
-      packages = perSystemPkgs (pkgs: {
-        leo = pkgs.leo;
-        leo-cli = pkgs.leo-cli;
-        leo-fmt = pkgs.leo-fmt;
-        leo-lsp = pkgs.leo-lsp;
-        snarkos = pkgs.snarkos;
-        snarkos-testnet = pkgs.snarkos-testnet;
-        tree-sitter-leo = pkgs.tree-sitter-leo;
-        default = pkgs.leo;
+      # Flat, check-friendly outputs: each value is a derivation. The rich
+      # versioned attr-set (`leo-bin."4.1.0"`, `leo-bin.latest.cli`, ...) lives
+      # under `legacyPackages` below, since `nix flake check` requires every
+      # `packages.<system>.<name>` to itself be a derivation.
+      packages = perSystemPkgs (
+        pkgs:
+        let
+          lib = pkgs.lib;
+          system = pkgs.stdenv.hostPlatform.system;
+          # `pkg.meta.platforms` is computed from the manifest's target keys
+          # without forcing the per-system target lookup that would `throw` on
+          # unsupported hosts, so this stays evaluable everywhere.
+          available = pkg: builtins.elem system pkg.meta.platforms;
+
+          leoBinAttrs = lib.optionalAttrs (available pkgs.leo-bin.latest) {
+            leo-bin = pkgs.leo-bin.latest;
+            leo-cli-bin = pkgs.leo-bin.latest.cli;
+            leo-fmt-bin = pkgs.leo-bin.latest.fmt;
+            leo-lsp-bin = pkgs.leo-bin.latest.lsp;
+          };
+          snarkosBinAttrs = lib.optionalAttrs (available pkgs.snarkos-bin.latest) {
+            snarkos-bin = pkgs.snarkos-bin.latest;
+          };
+        in
+        {
+          leo = pkgs.leo;
+          leo-cli = pkgs.leo-cli;
+          leo-fmt = pkgs.leo-fmt;
+          leo-lsp = pkgs.leo-lsp;
+          snarkos = pkgs.snarkos;
+          snarkos-testnet = pkgs.snarkos-testnet;
+          tree-sitter-leo = pkgs.tree-sitter-leo;
+          default = pkgs.leo;
+        }
+        // leoBinAttrs
+        // snarkosBinAttrs
+      );
+
+      # Versioned access: `nix shell '.#leo-bin."4.1.0"'` and
+      # `nix build '.#legacyPackages.x86_64-linux.leo-bin.latest.cli'`. Flake
+      # consumers that want this surface in their own derivations should apply
+      # `overlays.default`; `legacyPackages` is the public flake-level handle.
+      legacyPackages = perSystemPkgs (
+        pkgs:
+        let
+          lib = pkgs.lib;
+          system = pkgs.stdenv.hostPlatform.system;
+          available = pkg: builtins.elem system pkg.meta.platforms;
+          recurseInto = set: set // { recurseForDerivations = true; };
+        in
+        lib.optionalAttrs (available pkgs.leo-bin.latest) {
+          leo-bin = recurseInto pkgs.leo-bin;
+        }
+        // lib.optionalAttrs (available pkgs.snarkos-bin.latest) {
+          snarkos-bin = recurseInto pkgs.snarkos-bin;
+        }
+      );
+
+      apps = perSystemPkgs (pkgs: {
+        update-bin-manifest = {
+          type = "app";
+          program =
+            let
+              tool = pkgs.writeShellApplication {
+                name = "update-bin-manifest";
+                runtimeInputs = with pkgs; [
+                  cacert
+                  coreutils
+                  curl
+                  git
+                  jq
+                  nix
+                  yj
+                ];
+                text = builtins.readFile ./scripts/update-bin-manifest.sh;
+              };
+            in
+            "${tool}/bin/update-bin-manifest";
+        };
       });
 
       devShells = perSystemPkgs (pkgs: {

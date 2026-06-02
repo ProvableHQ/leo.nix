@@ -22,6 +22,8 @@ jobs:
         include:
           - command: build --print-build-logs --no-update-lock-file .#leo && ./result/bin/leo --version && ./result/bin/leo-fmt --help
           - command: build --print-build-logs --no-update-lock-file .#snarkos-testnet && ./result/bin/snarkos --version
+          - command: build --print-build-logs --no-update-lock-file .#leo-bin && ./result/bin/leo --version && ./result/bin/leo-fmt --help
+          - command: build --print-build-logs --no-update-lock-file .#snarkos-bin && ./result/bin/snarkos --version
           - command: develop --no-update-lock-file .#leo-dev
           - command: develop --no-update-lock-file .#snarkos-dev
           - command: flake check --all-systems --no-update-lock-file
