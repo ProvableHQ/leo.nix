@@ -1,30 +1,37 @@
 #!/usr/bin/env bash
-# Update manifests/<project>-bin.toml with hashes for a released version of leo or snarkos.
+# Update the relevant manifest with hashes for a released version of a leo
+# component or snarkos.
 #
-# Idempotent: re-running for an already-recorded (project, version) pair must produce
-# a byte-identical manifest file. The script uses jq -S to enforce sorted keys, and
-# yj -jt for TOML rendering (which preserves input key order, so the sorted JSON
-# becomes a sorted TOML).
+# Components and where they land:
+#   leo-lang | leo-fmt | leo-lsp  → manifests/leo-bin.toml
+#                                   (under components.<comp>.versions.<ver>)
+#   snarkos                       → manifests/snarkos-bin.toml
+#                                   (under versions.<ver>)
+#
+# For leo components: when the release ships a `leo-release.toml`, the
+# co-listed component versions (excluding self) are recorded in a `compat`
+# table — that's what the combined `leo-bin` builder uses to resolve which
+# plugin versions to bundle with a given leo-lang.
+#
+# Idempotent: re-running for an already-recorded (component, version) pair
+# produces a byte-identical manifest. Cache reuses per-target hashes from
+# the existing manifest; pass `--force` to re-prefetch everything.
 #
 # Usage:
-#   update-bin-manifest [--force] <leo|snarkos> <version>
-#
-# By default, (component, target) entries already present in the manifest are
-# reused as-is — no HTTP round-trip, no re-prefetch. Pass `--force` to ignore
-# the cache and re-hash everything (useful if upstream re-issued an archive
-# under the same tag).
+#   update-bin-manifest [--force] <component> <version>
 #
 # Examples:
-#   update-bin-manifest leo 4.1.0
+#   update-bin-manifest leo-lang 4.1.0
+#   update-bin-manifest leo-lsp  4.0.2
 #   update-bin-manifest --force snarkos 4.7.2
 
 set -euo pipefail
 
 usage() {
   cat >&2 <<'EOF'
-usage: update-bin-manifest [--force] <project> <version>
-  --force      ignore the cache; re-prefetch every (component, target) asset
-  project      leo | snarkos
+usage: update-bin-manifest [--force] <component> <version>
+  --force      ignore the cache; re-prefetch every target asset
+  component    leo-lang | leo-fmt | leo-lsp | snarkos
   version      a published release version, e.g. 4.1.0
 EOF
   exit 2
@@ -41,12 +48,13 @@ while [ $# -gt 0 ]; do
 done
 
 [ $# -eq 2 ] || usage
-project="$1"
+component="$1"
 version="$2"
 
-case "$project" in
-  leo|snarkos) ;;
-  *) echo "unknown project: $project" >&2; usage ;;
+case "$component" in
+  leo-lang|leo-fmt|leo-lsp) manifest_basename="leo-bin" ;;
+  snarkos)                  manifest_basename="snarkos-bin" ;;
+  *) echo "unknown component: $component" >&2; usage ;;
 esac
 
 for cmd in curl jq yj nix; do
@@ -60,7 +68,7 @@ if repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
 else
   repo_root="$PWD"
 fi
-manifest_path="$repo_root/manifests/${project}-bin.toml"
+manifest_path="$repo_root/manifests/${manifest_basename}.toml"
 mkdir -p "$(dirname "$manifest_path")"
 
 # Read existing manifest as JSON (empty object if absent or empty).
@@ -85,7 +93,7 @@ try_prefetch_hash() {
   nix store prefetch-file --json "$url" | jq -r .hash
 }
 
-# Iterate `targets` (JSON array on stdin) against `template` (with {target}
+# Iterate `targets` (JSON array) against `template` (with {target}
 # placeholder); emit a JSON object of `{target: hash}` for every asset that
 # resolves to 200. Missing assets are warned and skipped; other failures abort.
 #
@@ -129,56 +137,77 @@ prefetch_targets() {
   printf '%s' "$out"
 }
 
-# Build a fragment of the form `{versions: {<version>: {...}}}` for leo.
-build_leo_fragment() {
-  local toml_url="https://github.com/ProvableHQ/leo/releases/download/leo-lang-v${version}/leo-release.toml"
-  echo "fetching $toml_url" >&2
-  local release_toml release_json
-  release_toml="$(curl -fsSL "$toml_url")"
-  release_json="$(printf '%s' "$release_toml" | yj -tj)"
-
-  # Targets we map to Nix host platforms; everything else (musl, windows) is ignored.
+# Build a fragment shaped:
+#   {components: {<comp>: {binaries: [...], versions: {<ver>: {...}}}}}
+# for one leo-* component release. The version entry has:
+#   tag, archive_url_template, targets, and (optionally) compat.
+build_leo_component_fragment() {
+  local tag="${component}-v${version}"
+  local template="https://github.com/ProvableHQ/leo/releases/download/${tag}/${tag}-{target}.zip"
   local targets='["x86_64-unknown-linux-gnu","x86_64-apple-darwin","aarch64-apple-darwin"]'
 
-  local components='{}'
-  while IFS= read -r component; do
-    # Only emit components that actually ship a downloadable archive.
-    # The leo-release.toml also references crate-only deps (e.g. snarkvm) which we skip.
-    local template
-    template="$(jq -r --arg c "$component" '.components[$c].archive_url_template // ""' <<<"$release_json")"
-    [ -n "$template" ] || continue
-    # Only ship the components we expose via leo-bin.{cli,fmt,lsp}.
-    case "$component" in
-      leo-lang|leo-fmt|leo-lsp) ;;
-      *) continue ;;
-    esac
+  # Parse leo-release.toml when present. Pre-v4.1 split-tag releases (e.g.
+  # leo-lsp-v4.0.2) don't ship one — those simply omit `compat` from the
+  # manifest entry.
+  local toml_url="https://github.com/ProvableHQ/leo/releases/download/${tag}/leo-release.toml"
+  local compat='{}'
+  local release_toml
+  if release_toml="$(curl -fsSL --max-time 30 "$toml_url" 2>/dev/null)"; then
+    echo "  parsing $toml_url" >&2
+    local release_json other other_ver
+    release_json="$(printf '%s' "$release_toml" | yj -tj)"
+    for other in leo-lang leo-fmt leo-lsp; do
+      [ "$other" != "$component" ] || continue
+      other_ver="$(jq -r --arg c "$other" '.components[$c].version // ""' <<<"$release_json")"
+      [ -n "$other_ver" ] || continue
+      compat="$(jq --arg c "$other" --arg v "$other_ver" '. + {($c): $v}' <<<"$compat")"
+    done
+  else
+    echo "  no leo-release.toml at $toml_url (pre-toml release, omitting compat)" >&2
+  fi
 
-    local tag binaries existing_component_targets targets_obj
-    tag="$(jq -r --arg c "$component" '.components[$c].tag' <<<"$release_json")"
-    binaries="$(jq --arg c "$component" '.components[$c].binaries' <<<"$release_json")"
-    existing_component_targets="$(jq --arg v "$version" --arg c "$component" \
-      '.versions[$v].components[$c].targets // {}' <<<"$state")"
-    targets_obj="$(prefetch_targets "$template" "$targets" "$existing_component_targets")"
-    if [ "$(jq 'length' <<<"$targets_obj")" -eq 0 ]; then
-      echo "leo $version: component '$component' has no published targets we recognise; aborting" >&2
-      return 1
-    fi
+  local existing_targets targets_obj
+  existing_targets="$(jq --arg c "$component" --arg v "$version" \
+    '.components[$c].versions[$v].targets // {}' <<<"$state")"
+  targets_obj="$(prefetch_targets "$template" "$targets" "$existing_targets")"
+  if [ "$(jq 'length' <<<"$targets_obj")" -eq 0 ]; then
+    echo "$component $version: no published targets we recognise; aborting" >&2
+    return 1
+  fi
 
-    local component_obj
-    component_obj="$(jq -n \
+  local version_obj
+  if [ "$(jq 'length' <<<"$compat")" -gt 0 ]; then
+    version_obj="$(jq -n \
       --arg tag "$tag" \
-      --argjson binaries "$binaries" \
+      --arg template "$template" \
+      --argjson compat "$compat" \
+      --argjson targets "$targets_obj" \
+      '{archive_url_template: $template, compat: $compat, tag: $tag, targets: $targets}')"
+  else
+    version_obj="$(jq -n \
+      --arg tag "$tag" \
       --arg template "$template" \
       --argjson targets "$targets_obj" \
-      '{archive_url_template: $template, binaries: $binaries, tag: $tag, targets: $targets}')"
-    components="$(jq --arg c "$component" --argjson v "$component_obj" '. + {($c): $v}' <<<"$components")"
-  done < <(jq -r '.components | keys[]' <<<"$release_json")
+      '{archive_url_template: $template, tag: $tag, targets: $targets}')"
+  fi
 
-  jq -n --arg ver "$version" --argjson components "$components" \
-    '{versions: {($ver): {components: $components}}}'
+  # Binaries are stable per crate; hardcoded.
+  local binaries_obj
+  case "$component" in
+    leo-lang) binaries_obj='["leo"]' ;;
+    leo-fmt)  binaries_obj='["leo-fmt"]' ;;
+    leo-lsp)  binaries_obj='["leo-lsp"]' ;;
+  esac
+
+  jq -n \
+    --arg c "$component" \
+    --arg v "$version" \
+    --argjson binaries "$binaries_obj" \
+    --argjson version_obj "$version_obj" \
+    '{components: {($c): {binaries: $binaries, versions: {($v): $version_obj}}}}'
 }
 
-# Build a fragment of the form `{versions: {<version>: {...}}}` for snarkos.
+# Build a fragment shaped `{versions: {<ver>: {...}}}` for snarkos.
 build_snarkos_fragment() {
   local tag="v${version}"
   local template="https://github.com/ProvableHQ/snarkOS/releases/download/${tag}/aleo-${tag}-{target}.zip"
@@ -200,21 +229,38 @@ build_snarkos_fragment() {
     '{versions: {($ver): {archive_url_template: $template, binary: "snarkos", tag: $tag, targets: $targets}}}'
 }
 
-case "$project" in
-  leo)     fragment="$(build_leo_fragment)" ;;
-  snarkos) fragment="$(build_snarkos_fragment)" ;;
+case "$component" in
+  leo-lang|leo-fmt|leo-lsp)
+    fragment="$(build_leo_component_fragment)"
+    # Merge: keep existing components/versions; replace this component's
+    # binaries (always recomputed) and this (component, version) entry.
+    merged="$(jq \
+        --arg c "$component" --arg v "$version" \
+        --argjson f "$fragment" \
+        '
+          .components = (.components // {})
+          | .components[$c] = (.components[$c] // {})
+          | .components[$c].binaries = $f.components[$c].binaries
+          | .components[$c].versions = (.components[$c].versions // {})
+          | .components[$c].versions[$v] = $f.components[$c].versions[$v]
+        ' <<<"$state")"
+    # latest.<component> = semver-max of all recorded versions for this component.
+    latest_for_comp="$(jq -r --arg c "$component" '.components[$c].versions | keys[]' <<<"$merged" \
+                       | sort -V | tail -n1)"
+    merged="$(jq --arg c "$component" --arg l "$latest_for_comp" \
+        '.latest = (.latest // {}) | .latest[$c] = $l' <<<"$merged")"
+    echo_latest="$latest_for_comp ($component)"
+    ;;
+  snarkos)
+    fragment="$(build_snarkos_fragment)"
+    merged="$(jq --argjson f "$fragment" '.versions = ((.versions // {}) + $f.versions)' <<<"$state")"
+    # snarkos manifest has a single top-level `latest` (the schema predates
+    # multi-component support; no reason to break compat).
+    latest="$(jq -r '.versions | keys[]' <<<"$merged" | sort -V | tail -n1)"
+    merged="$(jq --arg l "$latest" '. + {latest: $l}' <<<"$merged")"
+    echo_latest="$latest"
+    ;;
 esac
-
-# Replace (don't deep-merge) the per-version entry: we always recompute the full
-# set of targets, so stale entries from a previous schema should not linger.
-merged="$(jq --argjson f "$fragment" '
-    .versions = ((.versions // {}) + $f.versions)
-  ' <<<"$state")"
-
-# `latest` is the semver-max of all version keys after the merge. This avoids
-# regressing `latest` when back-filling an older version.
-latest="$(jq -r '.versions | keys[]' <<<"$merged" | sort -V | tail -n1)"
-merged="$(jq --arg l "$latest" '. + {latest: $l}' <<<"$merged")"
 
 # Canonicalise: sorted keys throughout, then render to TOML.
 out="$(jq -S . <<<"$merged" | yj -jt)"
@@ -223,4 +269,4 @@ tmp="$(mktemp "${manifest_path}.XXXXXX")"
 printf '%s\n' "$out" > "$tmp"
 mv "$tmp" "$manifest_path"
 
-echo "wrote $manifest_path (latest=$latest)"
+echo "wrote $manifest_path (latest=$echo_latest)"

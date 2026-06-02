@@ -4,76 +4,57 @@
   lib,
   openssl,
   stdenv,
-  symlinkJoin,
   unzip,
 }:
 {
+  component,
   version,
-  data,
+  versionData,
+  binaries,
 }:
 let
   nixToTarget = import ./bin-systems.nix;
+  sys = stdenv.hostPlatform.system;
+  target = nixToTarget.${sys} or (throw "${component}-bin: no upstream binary available for ${sys}");
+  hash =
+    versionData.targets.${target} or (throw "${component}-bin: v${version} has no asset for ${target}");
+  url = builtins.replaceStrings [ "{target}" ] [ target ] versionData.archive_url_template;
 
   platformsFromTargets =
-    targets: lib.filter (sys: targets ? ${nixToTarget.${sys}}) (lib.attrNames nixToTarget);
-
-  mkComponent =
-    cname: cdata:
-    let
-      sys = stdenv.hostPlatform.system;
-      target = nixToTarget.${sys} or (throw "leo-bin: no upstream binary available for ${sys}");
-      hash =
-        cdata.targets.${target} or (throw "leo-bin: '${cname}' v${version} has no asset for ${target}");
-      url = builtins.replaceStrings [ "{target}" ] [ target ] cdata.archive_url_template;
-    in
-    stdenv.mkDerivation {
-      pname = "${cname}-bin";
-      inherit version;
-
-      src = fetchurl { inherit url hash; };
-
-      nativeBuildInputs = [ unzip ] ++ lib.optionals stdenv.isLinux [ autoPatchelfHook ];
-      buildInputs = lib.optionals stdenv.isLinux [
-        openssl
-        stdenv.cc.cc.lib
-      ];
-
-      dontUnpack = true;
-      dontConfigure = true;
-      dontBuild = true;
-      dontStrip = true;
-
-      installPhase = ''
-        runHook preInstall
-        unzip "$src"
-        install -Dm755 ${lib.concatStringsSep " " cdata.binaries} -t $out/bin
-        runHook postInstall
-      '';
-
-      meta = {
-        description = "Prebuilt upstream ${cname} binary (v${version}).";
-        platforms = platformsFromTargets cdata.targets;
-        sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
-      };
-    };
-
-  components = lib.mapAttrs mkComponent data.components;
-
-  componentPlatforms = map (c: c.meta.platforms) (lib.attrValues components);
-  combinedPlatforms = lib.foldl' lib.intersectLists (lib.attrNames nixToTarget) componentPlatforms;
+    targets: lib.filter (s: targets ? ${nixToTarget.${s}}) (lib.attrNames nixToTarget);
 in
-symlinkJoin {
-  name = "leo-bin-${version}";
-  paths = lib.attrValues components;
+stdenv.mkDerivation {
+  pname = "${component}-bin";
+  inherit version;
+
+  src = fetchurl { inherit url hash; };
+
+  nativeBuildInputs = [ unzip ] ++ lib.optionals stdenv.isLinux [ autoPatchelfHook ];
+  buildInputs = lib.optionals stdenv.isLinux [
+    openssl
+    stdenv.cc.cc.lib
+  ];
+
+  dontUnpack = true;
+  dontConfigure = true;
+  dontBuild = true;
+  dontStrip = true;
+
+  installPhase = ''
+    runHook preInstall
+    unzip "$src"
+    install -Dm755 ${lib.concatStringsSep " " binaries} -t $out/bin
+    runHook postInstall
+  '';
+
   passthru = {
-    inherit version components;
-    cli = components.leo-lang;
-    fmt = components.leo-fmt;
-    lsp = components.leo-lsp;
+    inherit version component;
+    compat = versionData.compat or { };
   };
+
   meta = {
-    description = "Prebuilt leo CLI plus first-party plugins (v${version}).";
-    platforms = combinedPlatforms;
+    description = "Prebuilt upstream ${component} binary (v${version}).";
+    platforms = platformsFromTargets versionData.targets;
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
   };
 }

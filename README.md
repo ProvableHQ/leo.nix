@@ -26,21 +26,33 @@ fetch the upstream release archives directly. Useful when you just want to
 run a specific released version without waiting for `cargo`.
 
 ```console
-# Latest stable, combined leo CLI plus first-party plugins:
+# Latest stable combined: leo-lang + compat-resolved leo-fmt + leo-lsp.
 nix shell github:provablehq/leo.nix#leo-bin
 
-# A pinned version (any version recorded in `manifests/leo-bin.toml`):
+# A pinned bundle, keyed by leo-lang version:
 nix shell 'github:provablehq/leo.nix#leo-bin."4.1.0"'
 
-# Individual components:
-nix shell github:provablehq/leo.nix#leo-cli-bin
-nix shell github:provablehq/leo.nix#leo-fmt-bin
-nix shell github:provablehq/leo.nix#leo-lsp-bin
+# Individual components, each with its own version set:
+nix shell github:provablehq/leo.nix#leo-cli-bin               # latest leo-lang
+nix shell github:provablehq/leo.nix#leo-fmt-bin               # latest leo-fmt
+nix shell github:provablehq/leo.nix#leo-lsp-bin               # latest leo-lsp
+nix shell 'github:provablehq/leo.nix#leo-fmt-bin."4.1.0"'
+nix shell 'github:provablehq/leo.nix#leo-lsp-bin."4.0.2"'     # older leo-lsp patch
 
 # snarkOS:
 nix shell github:provablehq/leo.nix#snarkos-bin
 nix shell 'github:provablehq/leo.nix#snarkos-bin."4.7.2"'
 ```
+
+The combined `leo-bin.<leo-lang-version>` resolves which plugin versions
+to bundle by reading each plugin release's own `leo-release.toml`. For a
+given leo-lang version it picks the highest plugin version whose
+`compat.leo-lang` matches, falling back to the leo-lang release's own
+toml pin when no plugin release has explicitly claimed compatibility.
+Older plugin releases (e.g. `leo-lsp-v4.0.2`, which predates the
+`leo-release.toml` convention) are still individually addressable as
+`leo-lsp-bin."4.0.2"` but won't accidentally land in any combined
+bundle.
 
 Supported targets: `x86_64-linux` (leo, snarkos), `x86_64-darwin` (leo),
 `aarch64-darwin` (leo, snarkos). On systems with no upstream binary
@@ -60,19 +72,21 @@ nix run .#update-manifests -- --force  # re-hashes every (component, target)
 ```
 
 This enumerates GitHub releases, keeps the tags we know how to handle
-(`leo-lang-vX.Y.Z` for leo, `vX.Y.Z` with major ≥ 4 for snarkOS), and
-imports each version. Entries already present in the manifest are
-reused without re-downloading; use `--force` if upstream re-issued an
-archive under the same tag. Versions that no longer match the filter
-(or that upstream deleted) are pruned at the end of each project's
-import loop. Set `GITHUB_TOKEN` to authenticate API calls if you hit
-the anonymous rate limit.
+(`leo-lang-vX.Y.Z`, `leo-fmt-vX.Y.Z`, `leo-lsp-vX.Y.Z` for leo;
+`vX.Y.Z` with major ≥ 4 for snarkOS), and imports each version. Entries
+already present in the manifest are reused without re-downloading; use
+`--force` if upstream re-issued an archive under the same tag. Versions
+that no longer match the filter (or that upstream deleted) are pruned
+at the end of each component's import loop. Set `GITHUB_TOKEN` to
+authenticate API calls if you hit the anonymous rate limit.
 
-To target a single version:
+To target a single component release:
 
 ```console
-nix run .#update-bin-manifest --         leo     4.1.0
-nix run .#update-bin-manifest -- --force snarkos 4.7.2
+nix run .#update-bin-manifest --         leo-lang 4.1.0
+nix run .#update-bin-manifest --         leo-fmt  4.1.0
+nix run .#update-bin-manifest --         leo-lsp  4.0.2
+nix run .#update-bin-manifest -- --force snarkos  4.7.2
 ```
 
 Re-running either command on an already-recorded version is a no-op —

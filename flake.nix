@@ -46,14 +46,48 @@
             leoBinManifest = builtins.fromTOML (builtins.readFile ./manifests/leo-bin.toml);
             snarkosBinManifest = builtins.fromTOML (builtins.readFile ./manifests/snarkos-bin.toml);
             mkLeoBin = prev.callPackage ./pkgs/mk-leo-bin.nix { };
+            mkLeoBundle = prev.callPackage ./pkgs/mk-leo-bundle.nix { };
             mkSnarkosBin = prev.callPackage ./pkgs/mk-snarkos-bin.nix { };
 
-            mkBinSet =
-              builder: manifest:
+            # Per-component versioned set: { latest = drv; "X.Y.Z" = drv; ... }.
+            mkLeoComponentSet =
+              componentName:
               let
-                byVersion = builtins.mapAttrs (version: data: builder { inherit version data; }) manifest.versions;
+                cdata = leoBinManifest.components.${componentName};
+                byVersion = builtins.mapAttrs (
+                  ver: versionData:
+                  mkLeoBin {
+                    component = componentName;
+                    version = ver;
+                    inherit versionData;
+                    binaries = cdata.binaries;
+                  }
+                ) cdata.versions;
               in
-              byVersion // { latest = byVersion.${manifest.latest}; };
+              byVersion // { latest = byVersion.${leoBinManifest.latest.${componentName}}; };
+
+            # Combined leo bundle keyed by leo-lang version. Each entry resolves
+            # compat-latest plugin versions and symlinkJoins everything.
+            leoBundleSet =
+              let
+                byVersion = builtins.mapAttrs (
+                  leoLangVersion: _:
+                  mkLeoBundle {
+                    inherit mkLeoBin;
+                    manifest = leoBinManifest;
+                    inherit leoLangVersion;
+                  }
+                ) leoBinManifest.components.leo-lang.versions;
+              in
+              byVersion // { latest = byVersion.${leoBinManifest.latest.leo-lang}; };
+
+            mkSnarkosBinSet =
+              let
+                byVersion = builtins.mapAttrs (
+                  version: data: mkSnarkosBin { inherit version data; }
+                ) snarkosBinManifest.versions;
+              in
+              byVersion // { latest = byVersion.${snarkosBinManifest.latest}; };
           in
           {
             # The main leo CLI binary.
@@ -82,11 +116,22 @@
               ];
             };
 
-            # Prebuilt upstream binaries (one combined symlinkJoin per recorded
-            # version, plus `latest`). Per-component derivations are exposed as
-            # passthru `.cli`, `.fmt`, `.lsp` on each version.
-            leo-bin = mkBinSet mkLeoBin leoBinManifest;
-            snarkos-bin = mkBinSet mkSnarkosBin snarkosBinManifest;
+            # Prebuilt upstream binaries.
+            #
+            # `leo-bin` is keyed by leo-lang version; each entry is a
+            # symlinkJoin of leo-lang + the compat-latest leo-fmt and leo-lsp
+            # for that release. Per-component access is via passthru `.cli`,
+            # `.fmt`, `.lsp`.
+            #
+            # `leo-cli-bin`, `leo-fmt-bin`, `leo-lsp-bin` are per-component
+            # versioned sets — every published release of that component
+            # lives here (including pre-toml releases like leo-lsp-v4.0.2),
+            # addressable as `leo-fmt-bin."4.1.0"` etc.
+            leo-bin = leoBundleSet;
+            leo-cli-bin = mkLeoComponentSet "leo-lang";
+            leo-fmt-bin = mkLeoComponentSet "leo-fmt";
+            leo-lsp-bin = mkLeoComponentSet "leo-lsp";
+            snarkos-bin = mkSnarkosBinSet;
 
             # Default snarkos pkg.
             snarkos = prev.callPackage ./pkgs/snarkos.nix { src = inputs.snarkos-src; };
@@ -113,9 +158,9 @@
       };
 
       # Flat, check-friendly outputs: each value is a derivation. The rich
-      # versioned attr-set (`leo-bin."4.1.0"`, `leo-bin.latest.cli`, ...) lives
-      # under `legacyPackages` below, since `nix flake check` requires every
-      # `packages.<system>.<name>` to itself be a derivation.
+      # versioned attr-set (`leo-bin."4.1.0"`, `leo-fmt-bin."4.1.0"`, ...)
+      # lives under `legacyPackages` below, since `nix flake check` requires
+      # every `packages.<system>.<name>` to itself be a derivation.
       packages = perSystemPkgs (
         pkgs:
         let
@@ -128,9 +173,9 @@
 
           leoBinAttrs = lib.optionalAttrs (available pkgs.leo-bin.latest) {
             leo-bin = pkgs.leo-bin.latest;
-            leo-cli-bin = pkgs.leo-bin.latest.cli;
-            leo-fmt-bin = pkgs.leo-bin.latest.fmt;
-            leo-lsp-bin = pkgs.leo-bin.latest.lsp;
+            leo-cli-bin = pkgs.leo-cli-bin.latest;
+            leo-fmt-bin = pkgs.leo-fmt-bin.latest;
+            leo-lsp-bin = pkgs.leo-lsp-bin.latest;
           };
           snarkosBinAttrs = lib.optionalAttrs (available pkgs.snarkos-bin.latest) {
             snarkos-bin = pkgs.snarkos-bin.latest;
@@ -150,10 +195,10 @@
         // snarkosBinAttrs
       );
 
-      # Versioned access: `nix shell '.#leo-bin."4.1.0"'` and
-      # `nix build '.#legacyPackages.x86_64-linux.leo-bin.latest.cli'`. Flake
-      # consumers that want this surface in their own derivations should apply
-      # `overlays.default`; `legacyPackages` is the public flake-level handle.
+      # Versioned access: `nix shell '.#leo-bin."4.1.0"'`,
+      # `nix shell '.#leo-lsp-bin."4.0.2"'`, etc. Flake consumers that want
+      # this surface in their own derivations should apply `overlays.default`;
+      # `legacyPackages` is the public flake-level handle.
       legacyPackages = perSystemPkgs (
         pkgs:
         let
@@ -164,6 +209,9 @@
         in
         lib.optionalAttrs (available pkgs.leo-bin.latest) {
           leo-bin = recurseInto pkgs.leo-bin;
+          leo-cli-bin = recurseInto pkgs.leo-cli-bin;
+          leo-fmt-bin = recurseInto pkgs.leo-fmt-bin;
+          leo-lsp-bin = recurseInto pkgs.leo-lsp-bin;
         }
         // lib.optionalAttrs (available pkgs.snarkos-bin.latest) {
           snarkos-bin = recurseInto pkgs.snarkos-bin;
