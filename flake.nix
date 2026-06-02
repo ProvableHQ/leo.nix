@@ -234,8 +234,8 @@
             ];
             text = builtins.readFile ./scripts/update-bin-manifest.sh;
           };
-          update-manifests = pkgs.writeShellApplication {
-            name = "update-manifests";
+          update-bin-manifests = pkgs.writeShellApplication {
+            name = "update-bin-manifests";
             runtimeInputs =
               (with pkgs; [
                 cacert
@@ -246,7 +246,7 @@
                 yj
               ])
               ++ [ update-bin-manifest ];
-            text = builtins.readFile ./scripts/update-manifests.sh;
+            text = builtins.readFile ./scripts/update-bin-manifests.sh;
           };
         in
         {
@@ -254,9 +254,9 @@
             type = "app";
             program = "${update-bin-manifest}/bin/update-bin-manifest";
           };
-          update-manifests = {
+          update-bin-manifests = {
             type = "app";
-            program = "${update-manifests}/bin/update-manifests";
+            program = "${update-bin-manifests}/bin/update-bin-manifests";
           };
         }
       );

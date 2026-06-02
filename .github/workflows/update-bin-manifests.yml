@@ -1,4 +1,4 @@
-name: update-manifests
+name: update-bin-manifests
 
 on:
   schedule:
@@ -9,7 +9,7 @@ on:
 # Prevent overlapping runs from racing each other, but don't cancel an
 # in-flight refresh just because the next cron tick arrived.
 concurrency:
-  group: update-manifests
+  group: update-bin-manifests
   cancel-in-progress: false
 
 jobs:
@@ -29,10 +29,10 @@ jobs:
 
       - name: Refresh manifests
         env:
-          # Honoured by scripts/update-manifests.sh to raise the
+          # Honoured by scripts/update-bin-manifests.sh to raise the
           # GitHub API rate limit from 60/hr (anon) to 1000/hr.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: nix run --no-update-lock-file .#update-manifests
+        run: nix run --no-update-lock-file .#update-bin-manifests
 
       - name: Verify the flake still evaluates
         run: nix flake check --all-systems --no-update-lock-file

@@ -28,7 +28,7 @@
 # anon, 5000/hr authenticated).
 #
 # Usage:
-#   update-manifests [--force]
+#   update-bin-manifests [--force]
 
 set -euo pipefail
 

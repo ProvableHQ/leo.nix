@@ -67,8 +67,8 @@ record its SRI hash.
 To pull in every available upstream stable release in one go:
 
 ```console
-nix run .#update-manifests           # cached: skips entries already recorded
-nix run .#update-manifests -- --force  # re-hashes every (component, target)
+nix run .#update-bin-manifests           # cached: skips entries already recorded
+nix run .#update-bin-manifests -- --force  # re-hashes every (component, target)
 ```
 
 This enumerates GitHub releases, keeps the tags we know how to handle
