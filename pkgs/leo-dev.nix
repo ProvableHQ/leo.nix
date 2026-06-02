@@ -1,5 +1,6 @@
 {
   cargo-nextest,
+  jq,
   leo-cli,
   leo-fmt,
   leo-lsp,
@@ -19,6 +20,7 @@ mkShell {
   ];
   buildInputs = [
     cargo-nextest
+    jq
     snarkos-testnet
   ];
   env = {
