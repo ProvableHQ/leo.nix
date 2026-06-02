@@ -1,7 +1,10 @@
 {
+  lib,
+  llvmPackages,
   makeRustPlatform,
   openssl,
   pkg-config,
+  rocksdb,
   rust,
   src,
 }:
@@ -23,10 +26,15 @@ rustPlatform.buildRustPackage {
   version = manifest.package.version;
   cargoLock.lockFile = "${src}/Cargo.lock";
   nativeBuildInputs = [
+    llvmPackages.bintools
     pkg-config
+    rustPlatform.bindgenHook
   ];
   buildInputs = [
     openssl
+    rocksdb
   ];
   doCheck = false; # Tested in CI.
+  # Dynamically link to rocksdb.
+  ROCKSDB_LIB_DIR = lib.makeLibraryPath [ rocksdb ];
 }
