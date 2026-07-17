@@ -52,6 +52,16 @@ leo-lsp = "4.3.3"
 aarch64-apple-darwin = "sha256-3hK6Gtu/UFJ26ebjbO3NBwpgPjpTkswCxPJ9tVL30dw="
 x86_64-apple-darwin = "sha256-JeMtf4bxqfbEJkUoBt9O4Wb1zBR/NM3m2OQwI1D/0PI="
 x86_64-unknown-linux-gnu = "sha256-FyuuCbtUBbIDNxpi1OBkD8lRrwMuFsUq746D8wGit/U="
+[components.leo-fmt.versions."4.3.4"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-fmt-v4.3.4/leo-fmt-v4.3.4-{target}.zip"
+tag = "leo-fmt-v4.3.4"
+[components.leo-fmt.versions."4.3.4".compat]
+leo-lang = "4.3.4"
+leo-lsp = "4.3.4"
+[components.leo-fmt.versions."4.3.4".targets]
+aarch64-apple-darwin = "sha256-LoAWX58gL3SlV8XG4tWdnDAYfZ7gdeTH3pzwpe1jZpA="
+x86_64-apple-darwin = "sha256-39eRHYSuz+BnvLrv4YzET1lVcg6V+Us5UIlIRwnpGvE="
+x86_64-unknown-linux-gnu = "sha256-uD1LpOnpcAKbatvF+BtAu7E0yoQfGi9rS4wSB44ItFU="
 [components.leo-lang]
 binaries = ["leo"]
 [components.leo-lang.versions]
@@ -105,6 +115,16 @@ leo-lsp = "4.3.3"
 aarch64-apple-darwin = "sha256-3vUNs85cWPt+/PG0IreSb4prpHrkrf+XMb9EF5s6SVA="
 x86_64-apple-darwin = "sha256-DLgIwO/5Ng6bzfnJRvXSNPT+jinUC+1ZUpCIPlVVj74="
 x86_64-unknown-linux-gnu = "sha256-P3C0kHpdMTZdvXXRos84Yz4KuF8z3+VcKZ4RfusGRPQ="
+[components.leo-lang.versions."4.3.4"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-lang-v4.3.4/leo-lang-v4.3.4-{target}.zip"
+tag = "leo-lang-v4.3.4"
+[components.leo-lang.versions."4.3.4".compat]
+leo-fmt = "4.3.4"
+leo-lsp = "4.3.4"
+[components.leo-lang.versions."4.3.4".targets]
+aarch64-apple-darwin = "sha256-0aK7hMrdIS89s1x00DH72w5zspVTuUGRGhhvfFXiQ2I="
+x86_64-apple-darwin = "sha256-/u+tALYi5qx6H5j7CR0aJd94tWtzIOwXa2yn9aogIf4="
+x86_64-unknown-linux-gnu = "sha256-+g+/ss8CwrwIhaoglMolRG7ZhWRJW9Oi/03dwMoPvlw="
 [components.leo-lsp]
 binaries = ["leo-lsp"]
 [components.leo-lsp.versions]
@@ -165,8 +185,18 @@ leo-lang = "4.3.3"
 aarch64-apple-darwin = "sha256-asFl1caLdbQ8eDi9hF5wFqIXyddhP8opcQzRjc+vTI8="
 x86_64-apple-darwin = "sha256-jVKwTEz6WQv8vHem8FVbg7lnpapGuqqMNnguuhP4o6E="
 x86_64-unknown-linux-gnu = "sha256-vIb06oXVHmSReitonMUdjCJuNKAd+SK0EEmxZXlJZvs="
+[components.leo-lsp.versions."4.3.4"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-lsp-v4.3.4/leo-lsp-v4.3.4-{target}.zip"
+tag = "leo-lsp-v4.3.4"
+[components.leo-lsp.versions."4.3.4".compat]
+leo-fmt = "4.3.4"
+leo-lang = "4.3.4"
+[components.leo-lsp.versions."4.3.4".targets]
+aarch64-apple-darwin = "sha256-LR2p1cSyjjJmFnalOoaAM2hezsxzbharLgQ8aWZ71M4="
+x86_64-apple-darwin = "sha256-NDXxObIGc++IE1QSpkne2ZN/oqadXkTZal9vGt9dVwo="
+x86_64-unknown-linux-gnu = "sha256-596K7rLyOXsLDlv0/FmjqySu6YELjXKBiLH6ep5pT6k="
 
 [latest]
-leo-fmt = "4.3.3"
-leo-lang = "4.3.3"
-leo-lsp = "4.3.3"
+leo-fmt = "4.3.4"
+leo-lang = "4.3.4"
+leo-lsp = "4.3.4"
