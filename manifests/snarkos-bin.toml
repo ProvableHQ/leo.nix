@@ -1,4 +1,4 @@
-latest = "4.8.1"
+latest = "4.9.0"
 
 [versions]
 [versions."4.0.0"]
@@ -166,3 +166,9 @@ binary = "snarkos"
 tag = "v4.8.1"
 [versions."4.8.1".targets]
 x86_64-unknown-linux-gnu = "sha256-HF8I4F6CTvjkmw0Arli0QCGoOzD4a5g+ULlMfwaERHA="
+[versions."4.9.0"]
+archive_url_template = "https://github.com/ProvableHQ/snarkOS/releases/download/v4.9.0/aleo-v4.9.0-{target}.zip"
+binary = "snarkos"
+tag = "v4.9.0"
+[versions."4.9.0".targets]
+x86_64-unknown-linux-gnu = "sha256-0bpiUXlWR4A/TmTeQ1y06LvRAkfcLIimLRRdUPY0/H8="
