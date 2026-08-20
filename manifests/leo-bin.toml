@@ -72,6 +72,26 @@ leo-lsp = "4.4.0"
 aarch64-apple-darwin = "sha256-oIh4KkHCNOuGAYYXZOpogilsCwwBQ+qrJbONMhYy4+k="
 x86_64-apple-darwin = "sha256-IVO4rtsZ07GI+hvzs2o5gSMHbAgwuA1d9QCbtehU7+s="
 x86_64-unknown-linux-gnu = "sha256-quZ+pWg6PlKzEUZkitmClggJCKwbhFh4Ol4MbNQVcC0="
+[components.leo-fmt.versions."4.4.1"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-fmt-v4.4.1/leo-fmt-v4.4.1-{target}.zip"
+tag = "leo-fmt-v4.4.1"
+[components.leo-fmt.versions."4.4.1".compat]
+leo-lang = "4.4.1"
+leo-lsp = "4.4.1"
+[components.leo-fmt.versions."4.4.1".targets]
+aarch64-apple-darwin = "sha256-QV2pey8k3Fl5CymVQbU5YN/2Sdp2FdZdyDOF2kT3sCo="
+x86_64-apple-darwin = "sha256-ok/PBCflsxo4rAhv1k6En7E8CRZqhXOoICMYPwseN1E="
+x86_64-unknown-linux-gnu = "sha256-/CLZRgXlNwemiHoTJnhnZqbIr5qEJHKqSZPXeqlOUH4="
+[components.leo-fmt.versions."4.4.2"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-fmt-v4.4.2/leo-fmt-v4.4.2-{target}.zip"
+tag = "leo-fmt-v4.4.2"
+[components.leo-fmt.versions."4.4.2".compat]
+leo-lang = "4.4.2"
+leo-lsp = "4.4.2"
+[components.leo-fmt.versions."4.4.2".targets]
+aarch64-apple-darwin = "sha256-8N/WHdaS7aEotgIAbP5219OuRSjpX5fV+x6hmIEC7KE="
+x86_64-apple-darwin = "sha256-FhaQmi54tfnqgMwX4CVgaRb8fl/axU+U1v2zrxQYKig="
+x86_64-unknown-linux-gnu = "sha256-yNcd/IxFbvSEBSgVOb/rH4kFSVkmuukZRwZwDtKDo8s="
 [components.leo-lang]
 binaries = ["leo"]
 [components.leo-lang.versions]
@@ -145,6 +165,26 @@ leo-lsp = "4.4.0"
 aarch64-apple-darwin = "sha256-lBn8bwr1L18xXDY+LMMweSdUNrtJe2/LSgq+HEaPfb4="
 x86_64-apple-darwin = "sha256-baqEqKCBlpjC9eIC01wPg3Uj91xt6JJ3EzINgkYmNpY="
 x86_64-unknown-linux-gnu = "sha256-Cc0RdnPTaSkwHrrwO/fmcYBWmP0rUFSvAzD3NOWHgcA="
+[components.leo-lang.versions."4.4.1"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-lang-v4.4.1/leo-lang-v4.4.1-{target}.zip"
+tag = "leo-lang-v4.4.1"
+[components.leo-lang.versions."4.4.1".compat]
+leo-fmt = "4.4.1"
+leo-lsp = "4.4.1"
+[components.leo-lang.versions."4.4.1".targets]
+aarch64-apple-darwin = "sha256-6Ksl7R1s/jDUpl1VtYId6URlzMTgWml/z8LWqBu1H6g="
+x86_64-apple-darwin = "sha256-SNLUIn6/bk6gzeee5LFPrK+Kqq+HvXv5i4WlnXfOXeA="
+x86_64-unknown-linux-gnu = "sha256-fYflkjSIG8k256bHDSdb+MU2uIwqRJ98fRRWgi11o9U="
+[components.leo-lang.versions."4.4.2"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-lang-v4.4.2/leo-lang-v4.4.2-{target}.zip"
+tag = "leo-lang-v4.4.2"
+[components.leo-lang.versions."4.4.2".compat]
+leo-fmt = "4.4.2"
+leo-lsp = "4.4.2"
+[components.leo-lang.versions."4.4.2".targets]
+aarch64-apple-darwin = "sha256-ItAtR4Ad2MhSJJqZ2Pgap27oBDod7gn2ThluXXoYURQ="
+x86_64-apple-darwin = "sha256-SLq3DPAxDKFDcU0EV01u/r9xtqk1JXt5kgmV+tPzlVs="
+x86_64-unknown-linux-gnu = "sha256-4TS/d6PxpyK6DCGzq6yv/0EFQr12jm4W3GBvqvQACgg="
 [components.leo-lsp]
 binaries = ["leo-lsp"]
 [components.leo-lsp.versions]
@@ -225,8 +265,18 @@ leo-lang = "4.4.0"
 aarch64-apple-darwin = "sha256-nOkVdssjVmsVwvU1nAQ6PUcx2pJ9+Vj3LJ5iaY+Huds="
 x86_64-apple-darwin = "sha256-T3xEVcngEPkN8aFsI0VpXFhmQyq4cQ54ZGia3dmjY0A="
 x86_64-unknown-linux-gnu = "sha256-Bv+2bbpw22K+o8okh9J9zSzx7MbcQcmuIt0U4NMwyQE="
+[components.leo-lsp.versions."4.4.2"]
+archive_url_template = "https://github.com/ProvableHQ/leo/releases/download/leo-lsp-v4.4.2/leo-lsp-v4.4.2-{target}.zip"
+tag = "leo-lsp-v4.4.2"
+[components.leo-lsp.versions."4.4.2".compat]
+leo-fmt = "4.4.2"
+leo-lang = "4.4.2"
+[components.leo-lsp.versions."4.4.2".targets]
+aarch64-apple-darwin = "sha256-1y6x9AbvGYC2Z7Ji7NrikFmESddSzrWmb0s5SAygXXQ="
+x86_64-apple-darwin = "sha256-mG/PUNeWwhDVUNKYLQiygISRw7Tv03G7rN/nXKPfYyg="
+x86_64-unknown-linux-gnu = "sha256-wowKt+WB+V8udBz5H5dEDXQCekAPk6lsNiithHYlU/k="
 
 [latest]
-leo-fmt = "4.4.0"
-leo-lang = "4.4.0"
-leo-lsp = "4.4.0"
+leo-fmt = "4.4.2"
+leo-lang = "4.4.2"
+leo-lsp = "4.4.2"
