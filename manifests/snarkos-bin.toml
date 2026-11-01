@@ -1,4 +1,4 @@
-latest = "4.12.0"
+latest = "4.12.1"
 
 [versions]
 [versions."4.0.0"]
@@ -46,6 +46,13 @@ tag = "v4.12.0"
 [versions."4.12.0".targets]
 aarch64-apple-darwin = "sha256-KLPmSsqSqkOy6hRiWYzU2+CRK0Q4F7GbIrhdH3W11jE="
 x86_64-unknown-linux-gnu = "sha256-MYGPRnwba+9jdskyxy/Ecgn3ijqTZiBX+cd83veRNUU="
+[versions."4.12.1"]
+archive_url_template = "https://github.com/ProvableHQ/snarkOS/releases/download/v4.12.1/aleo-v4.12.1-{target}.zip"
+binary = "snarkos"
+tag = "v4.12.1"
+[versions."4.12.1".targets]
+aarch64-apple-darwin = "sha256-hOqCFH9LTQXeRbe85Z137eVDwTDYom3pNDtj/a1h/HE="
+x86_64-unknown-linux-gnu = "sha256-DZXl4DQlrYKkD9El/JorgE3wMf5bZCxAlr24Z2dOFg0="
 [versions."4.2.0"]
 archive_url_template = "https://github.com/ProvableHQ/snarkOS/releases/download/v4.2.0/aleo-v4.2.0-{target}.zip"
 binary = "snarkos"
